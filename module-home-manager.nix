@@ -4,6 +4,8 @@ let
     mkIf
     mkMerge
     mapAttrsToList
+    match
+    stringToCharacters
     ;
   cfg = config.fs-bookmarks;
   inherit (import ./module-let-in-shared.nix { inherit cfg lib; })
@@ -37,6 +39,15 @@ in
             inherit (value) tag;
             path = value.dir;
             inherit key;
+          }) cfg.bookmarks
+        );
+      })
+      (lib.mkIf cfg.set.yazi.whoosh {
+        yazi.yaziPlugins.plugins.whoosh.bookmarks = (
+          mapAttrsToList (key: value: {
+            inherit (value) tag;
+            path = value.dir;
+            key = if (match "." key) != null then key else stringToCharacters key;
           }) cfg.bookmarks
         );
       })

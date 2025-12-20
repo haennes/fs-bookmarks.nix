@@ -46,7 +46,10 @@
                 "zsh"
               ]
           );
-          yazi.yamb = mkEnableOption "wether to add the bookmarks to yazi yamb";
+          yazi = {
+            yamb = mkEnableOption "wether to add the bookmarks to yazi yamb";
+            whoosh = mkEnableOption "wether to add the bookmarks to yazi whoosh";
+          };
         };
         bookmarks = mkOption {
           type = attrsOf (
