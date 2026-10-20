@@ -19,39 +19,44 @@ let
     let
       inherit (bookmark) dir;
     in
-    if useDirStack then "use std/dirs; dirs add ${dir}" else "cd ${dir}";
+    if useDirStack then "dirs add ${dir}" else "cd ${dir}";
 in
 {
   config = lib.mkIf cfg.enable {
     home.shellAliases = mkIf cfg.useToplevelShellAliases shellAliases;
 
-    programs = mkIf (!cfg.useToplevelShellAliases) (mkMerge [
-      (programsShellAliases [
-        "bash"
-        "ion"
-        "fish"
-        "zsh"
-      ])
-      (programsShellAliasesFunc nushellShellAliasFromBookmark [ "nushell" ])
-      (lib.mkIf cfg.set.yazi.yamb {
-        yazi.yaziPlugins.plugins.yamb.bookmarks = (
-          mapAttrsToList (key: value: {
-            inherit (value) tag;
-            path = value.dir;
-            inherit key;
-          }) cfg.bookmarks
-        );
+    programs = mkMerge [
+      (mkIf (cfg.set.shell.nushell) {
+        nushell.extraConfig = "use dirs;";
       })
-      (lib.mkIf cfg.set.yazi.whoosh {
-        yazi.yaziPlugins.plugins.whoosh.bookmarks = (
-          mapAttrsToList (key: value: {
-            inherit (value) tag;
-            path = value.dir;
-            key = if (match "." key) != null then key else stringToCharacters key;
-          }) cfg.bookmarks
-        );
-      })
-    ]);
+      (mkIf (!cfg.useToplevelShellAliases) (mkMerge [
+        (programsShellAliases [
+          "bash"
+          "ion"
+          "fish"
+          "zsh"
+        ])
+        (programsShellAliasesFunc nushellShellAliasFromBookmark [ "nushell" ])
+        (lib.mkIf cfg.set.yazi.yamb {
+          yazi.yaziPlugins.plugins.yamb.bookmarks = (
+            mapAttrsToList (key: value: {
+              inherit (value) tag;
+              path = value.dir;
+              inherit key;
+            }) cfg.bookmarks
+          );
+        })
+        (lib.mkIf cfg.set.yazi.whoosh {
+          yazi.yaziPlugins.plugins.whoosh.bookmarks = (
+            mapAttrsToList (key: value: {
+              inherit (value) tag;
+              path = value.dir;
+              key = if (match "." key) != null then key else stringToCharacters key;
+            }) cfg.bookmarks
+          );
+        })
+      ]))
+    ];
   };
 
 }
